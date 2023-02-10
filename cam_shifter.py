@@ -1,45 +1,24 @@
 import cv2
 import numpy as np
-import functools
 
 class OpenCVError(Exception):
     '''An error caused by OpenCV'''
     pass
 
-
-
-def openCvCaptureProperty(attributeName, cvPropertyId, defaultValue):
-    def decorator(Class):
-        privateName = "__" + attributeName
-
-        def getter(self):
-            return getattr(self, privateName)
-
-        def setter(self, value): 
-            setattr(self, privateName, value)
-
-        setattr(Class, attributeName, property(getter, setter))
-        return Class
-
-
 class BasicOpenCVPointReader:
     def __init__(self):
-        pass
+        self.green_min_range = np.array([0,0,145])
+        self.green_max_range = np.array([255,115,255])
+        self.red_min_range = np.array([0,145,160])
+        self.red_max_range = np.array([255,255,255])
 
     def __enter__(self):
         self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         if not self.cap.isOpened():
             raise OpenCVError("Errore durante l'apertura dell'obbiettivo")
-
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 352)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 288)
-        self.cap.set(cv2.CAP_PROP_FPS, 60)
-
-        
+            
         print("Camera running!") 
         return self
-
-        #self.cap.set(0, 0)
 
     def __exit__(self, *args):
         self.cap.release()
@@ -49,45 +28,39 @@ class BasicOpenCVPointReader:
     def __next__(self):
         _, frame = self.cap.read()
 
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-        red_mask1 = cv2.inRange(hsv, np.array([0,50,240]), np.array([20,255,255]))
-        red_mask2 = cv2.inRange(hsv, np.array([159,50,230]), np.array([179,255,255]))
-        red_mask = cv2.bitwise_or(red_mask1, red_mask2)
+        lab = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)
         
-        blue_mask = cv2.inRange(hsv, np.array([100,50,240]), np.array([140,255,255]))
-
-        blue_pts = cv2.findNonZero(blue_mask)
-        red_pts = cv2.findNonZero(red_mask)
-
-        if red_pts is not None:
-            red_point = np.mean(red_pts, axis=(0, 1))
-        else:
-            red_point = None
-
-        if blue_pts is not None:
-            blue_point = np.mean(blue_pts, axis=(0, 1))
-        else:
-            blue_point = None
-
-        return frame, red_point, blue_point
+        def process(min_range, max_range):
+            im = cv2.inRange(lab, min_range,max_range)
+            pts = cv2.findNonZero(im)
+            if pts is not None:
+                return np.mean(pts, axis=(0, 1))
+            else:
+                return None
+        return (
+            frame, 
+            process(self.red_min_range, self.red_max_range),
+            process(self.green_min_range, self.green_max_range)
+        )
 
     def __iter__(self):
         return self
-
-
 
 
 with BasicOpenCVPointReader() as pointReader:
     oldWindowSize = None
     cv2.namedWindow('video', cv2.WINDOW_KEEPRATIO)
 
-    for frame, red, blue in pointReader:
+    pointReader.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 352)
+    pointReader.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 288)
+    pointReader.cap.set(cv2.CAP_PROP_FPS, 60)
+
+    for frame, red, green in pointReader:
         frame: cv2.Mat
         if red is not None:
             frame = cv2.circle(frame, (int(red[0]), int(red[1])), 10, (0, 0, 255), 2)
-        if blue is not None:
-            frame = cv2.circle(frame, (int(blue[0]), int(blue[1])), 10, (255, 0, 0), 2)
+        if green is not None:
+            frame = cv2.circle(frame, (int(green[0]), int(green[1])), 10, (0, 255, 0), 2)
 
         cv2.imshow('video', frame)
 
