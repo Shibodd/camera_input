@@ -12,6 +12,12 @@ class ColorConverterProcessor(CachedProcessor):
         return cv2.cvtColor(result, self.colorConversion)
 
 
+class BlurProcessor(CachedProcessor):
+    def __init__(self, frameSource, radii):
+        super().__init__(frameSource)
+        self.radii = radii
+    def process(self, frame):
+        return cv2.blur(frame, (self.radii, self.radii))
 class SimpleColorRangePointProcessor(CachedProcessor):
     """ A point source which averages the coordinates of the points which have (opencv)  colors in the range(s) passed as parameter.
         If multiple ranges are passed, the results of each individual inRange will be OR'd."""
@@ -26,9 +32,9 @@ class SimpleColorRangePointProcessor(CachedProcessor):
             min_range, max_range = self.ranges[0]
             im = cv2.inRange(frame, min_range,max_range)
         else:
-            im = frame
-            for r in self.ranges:
-                min_range, max_range = r
+            im = cv2.inRange(frame, *self.ranges[0])
+            for i in range(1, len(self.ranges)):
+                min_range, max_range = self.ranges[i]
                 im = cv2.bitwise_or(im, cv2.inRange(frame, min_range, max_range))
 
         pts = cv2.findNonZero(im)
