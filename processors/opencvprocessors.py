@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
-from processors import CachedProcessor
+
+from processors.processors import CachedProcessor
 
 class ColorConverterProcessor(CachedProcessor):
     def __init__(self, frameSource, colorConversion):

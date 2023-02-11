@@ -1,18 +1,19 @@
 import cv2
 import numpy as np
 
-import opencvsources as sources
-import opencvprocessors as processors
+import sources.opencvsources as sources
+import processors.opencvprocessors as processors
+
 with sources.OpenCVCameraFrameSource(0, cv2.CAP_DSHOW, 352, 288, 16) as camFrameSource:
     colConvFrameSource = processors.ColorConverterProcessor(camFrameSource, cv2.COLOR_BGR2LAB)
 
-    westPointReader = processors.SimpleColorRangePointProcessor(
+    greenPointReader = processors.SimpleColorRangePointProcessor(
         colConvFrameSource, [(
             np.array([0,   0, 145]),
             np.array([255, 115, 255])
         )])
 
-    eastPointReader = processors.SimpleColorRangePointProcessor(
+    redPointReader = processors.SimpleColorRangePointProcessor(
         colConvFrameSource, [(
             np.array([0, 145, 160]),
             np.array([255, 255, 255])
@@ -20,7 +21,7 @@ with sources.OpenCVCameraFrameSource(0, cv2.CAP_DSHOW, 352, 288, 16) as camFrame
 
     cv2.namedWindow('video', cv2.WINDOW_KEEPRATIO)
 
-    for redResult, greenResult in zip(westPointReader, eastPointReader):
+    for redResult, greenResult in zip(redPointReader, greenPointReader):
         nsR, red = redResult
         nsG, green = greenResult
         ns, frame = camFrameSource.get_last_frame()

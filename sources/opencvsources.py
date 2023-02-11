@@ -1,7 +1,5 @@
 import cv2
-import numpy as np
 import time
-from typing import Iterable, Callable
 
 class OpenCVError(Exception):
     '''An error caused by OpenCV'''
