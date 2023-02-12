@@ -1,5 +1,5 @@
 import unittest
-from processors.processors import Processor, cached_processor
+from camera_input.processors.processors import Processor, cached_processor
 
 @cached_processor
 class TestProcessor(Processor):
