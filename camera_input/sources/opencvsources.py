@@ -6,6 +6,8 @@ class OpenCVError(Exception):
     pass
 
 class OpenCVCameraFrameSource:
+    """ A frame source which reads from a camera. This can be used as a pipeline source. """
+
     def __init__(self, captureIndex, captureApi, width, height, fps):
         self.__captureIndex = captureIndex
         self.__captureApi = captureApi

@@ -4,6 +4,8 @@ import numpy as np
 import time
 
 def cached_processor(Class):
+    """ A decorator which wraps the process method of a Processor with a cached version. """
+
     PROCESS_ATTR_NAME = 'process'
     LAST_RESULT_ATTR_NAME ='__cached_processor_last_result'
     LAST_TIMESTAMPS_ATTR_NAME ='__cached_processor_last_timestamps'
@@ -26,11 +28,15 @@ def cached_processor(Class):
 
 
 class Processor(abc.ABC):
+    """ The base class for all processors. Implements the generator pattern and defines the process method as abstract. """
+
     def __init__(self, *sources: Iterable[object]):
         self.__sources = sources
 
     @abc.abstractmethod
     def process(self, source_timestamps, source_results):
+        """ The process method is called with the source values and their timestamps, in the same order as they are passed to __init__. \n
+            It should return a tuple containing the timestamp of the result and the result itself."""
         pass
 
     def __next__(self):
@@ -44,6 +50,8 @@ class Processor(abc.ABC):
 
 @cached_processor
 class ArmProcessor(Processor):
+    """ A point source which calculates the point of an arm attached to the middle of two point sources. """
+
     def __init__(self, westPointSource, eastPointSource, armLength):
         super().__init__(westPointSource, eastPointSource)
         self.armLength = armLength

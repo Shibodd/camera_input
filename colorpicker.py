@@ -1,20 +1,22 @@
 import cv2
 import numpy as np
-from sources.opencvsources import OpenCVCameraFrameSource
+from camera_input.sources.opencvsources import OpenCVCameraFrameSource
 
 def nothing(x):
     pass
 
-with OpenCVCameraFrameSource(0, cv2.CAP_DSHOW, 352, 288, 16) as cam:
-    # Create a window
-    cv2.namedWindow('image')
+COLORSPACE = "LAB"
 
-    CONV = cv2.COLOR_BGR2HSV
-    channels = [
-        ('H', 0, 180),
-        ('S', 0, 255),
-        ('V', 0, 255),
-    ]
+colorspaces = {
+    "HSV": ( cv2.COLOR_BGR2HSV, [ ('H', 0, 180), ('S', 0, 255), ('V', 0, 255) ] ),
+    "LAB": ( cv2.COLOR_BGR2LAB, [ ('L', 0, 255), ('A', 0, 255), ('B', 0, 255) ] )
+}
+
+conversion = colorspaces[COLORSPACE][0]
+channels = colorspaces[COLORSPACE][1]
+
+with OpenCVCameraFrameSource(0, cv2.CAP_DSHOW, 352, 288, 16) as cam:
+    cv2.namedWindow('image')
 
     for ch in channels:
         cv2.createTrackbar(f'{ch[0]}Min', 'image', ch[1], ch[2], nothing)
@@ -30,7 +32,7 @@ with OpenCVCameraFrameSource(0, cv2.CAP_DSHOW, 352, 288, 16) as cam:
         lower = np.array(mins)
         upper = np.array(maxs)
 
-        hsv = cv2.cvtColor(image, CONV)
+        hsv = cv2.cvtColor(image, conversion)
         mask = cv2.inRange(hsv, lower, upper)
         result = cv2.bitwise_and(image, image, mask=mask)
 

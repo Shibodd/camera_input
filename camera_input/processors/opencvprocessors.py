@@ -2,10 +2,12 @@ import cv2
 import numpy as np
 import time
 
-from processors.processors import Processor, cached_processor
+from camera_input.processors.processors import Processor, cached_processor
 
 @cached_processor
 class ColorConverterProcessor(Processor):
+    """ A frame source which applies the colorspace conversion."""
+
     def __init__(self, frameSource, colorConversion):
         super().__init__(frameSource)
         self.colorConversion = colorConversion
@@ -16,6 +18,8 @@ class ColorConverterProcessor(Processor):
 
 @cached_processor
 class BlurProcessor(Processor):
+    """ A frame source which blurs the input frame."""
+
     def __init__(self, frameSource, radii, sigma):
         super().__init__(frameSource)
         self.radii = radii

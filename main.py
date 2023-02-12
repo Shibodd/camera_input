@@ -1,14 +1,16 @@
 import cv2
 import numpy as np
 
-import sources.opencvsources as sources
-import processors.opencvprocessors as cv_processors
-import processors.processors as processors
-from pipeline import Pipeline
-from actors.protractor import Protractor
-from actors.frame_point_renderer import FramePointRenderer
-from actors.pynput_mouse import PynputMouseCursor
+import camera_input.sources.opencvsources as sources
+import camera_input.processors.opencvprocessors as cv_processors
+import camera_input.processors.processors as processors
+from camera_input.pipeline import Pipeline
+from camera_input.actors.protractor import Protractor
+from camera_input.actors.frame_point_renderer import FramePointRenderer
+from camera_input.actors.pynput_mouse import PynputMouseCursor
 
+
+# Define all pipeline blocks
 
 camFrameSource = sources.OpenCVCameraFrameSource(0, cv2.CAP_DSHOW, 352, 288, 16)
 blurredFrameSource = cv_processors.BlurProcessor(camFrameSource, 3, 3)
@@ -37,9 +39,11 @@ dbg_rend = FramePointRenderer(camFrameSource, [
 ])
 mouse = PynputMouseCursor(armPointProcessor, 10)
 
-pipeline = Pipeline(camFrameSource, protractor, dbg_rend, mouse)
 
+# Build the pipeline
+pipeline = Pipeline([camFrameSource], [protractor, dbg_rend, mouse])
 with camFrameSource, protractor, dbg_rend:
+    # Run the pipeline
     while True:
         pipeline.tick()
         key = cv2.waitKey(1) & 0xFF
