@@ -1,0 +1,1 @@
+""" A package to create and run a pipeline of operations on camera images. Comes with a default source, some processing blocks, and some demo actors."""
