@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from camera_input.sources.opencvsources import OpenCVCameraFrameSource
+import pyperclip
 
 def nothing(x):
     pass
@@ -26,11 +27,8 @@ with OpenCVCameraFrameSource(0, cv2.CAP_DSHOW, 352, 288, 16) as cam:
     while True:
         _, image = cam.tick()
 
-        mins = [cv2.getTrackbarPos(f'{ch[0]}Min', 'image') for ch in channels]
-        maxs = [cv2.getTrackbarPos(f'{ch[0]}Max', 'image') for ch in channels]
-
-        lower = np.array(mins)
-        upper = np.array(maxs)
+        lower = np.array([cv2.getTrackbarPos(f'{ch[0]}Min', 'image') for ch in channels])
+        upper = np.array([cv2.getTrackbarPos(f'{ch[0]}Max', 'image') for ch in channels])
 
         hsv = cv2.cvtColor(image, conversion)
         mask = cv2.inRange(hsv, lower, upper)
@@ -38,6 +36,10 @@ with OpenCVCameraFrameSource(0, cv2.CAP_DSHOW, 352, 288, 16) as cam:
 
         cv2.imshow('image', result)
         if cv2.waitKey(10) & 0xFF == ord('q'):
+            lower_str = ", ".join((str(x) for x in lower))
+            upper_str = ", ".join((str(x) for x in upper))
+
+            pyperclip.copy(f"( np.array({lower_str}), np.array({upper_str}) )")
             break
 
     cv2.destroyAllWindows()
