@@ -1,5 +1,7 @@
 from typing import Iterable
 import abc
+import numpy as np
+import time
 
 def cached_processor(Class):
     PROCESS_ATTR_NAME = 'process'
@@ -38,3 +40,24 @@ class Processor(abc.ABC):
     
     def __iter__(self):
         return self
+
+
+@cached_processor
+class ArmProcessor(Processor):
+    def __init__(self, westPointSource, eastPointSource, armLength):
+        super().__init__(westPointSource, eastPointSource)
+        self.armLength = armLength
+
+    def process(self, _, sourceResults):
+        west, east = sourceResults
+        if west is None or east is None:
+            ans = None
+        else:
+            diff = (east - west)
+            diff_hat = diff / np.linalg.norm(diff)
+
+            mid = west + diff / 2
+            arm_hat = np.array([diff_hat[1], -diff_hat[0]])
+            ans = mid + (arm_hat * self.armLength)
+
+        return (time.monotonic_ns(), ans)
