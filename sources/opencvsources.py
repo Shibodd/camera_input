@@ -29,7 +29,7 @@ class OpenCVCameraFrameSource:
         print("Camera running!") 
         return self
 
-    def __exit__(self):
+    def __exit__(self, *args):
         self.cap.release()
         self.cap = None
         print("Camera stopped!")
@@ -39,7 +39,7 @@ class OpenCVCameraFrameSource:
         if not ok:
             raise OpenCVError("Failed to grab a frame from the capture.")
 
-        ns = time.time_ns()
+        ns = time.monotonic_ns()
 
         ok, frame = self.cap.retrieve()
         if not ok:

@@ -1,6 +1,4 @@
 import cv2
-import numpy as np
-import math
 import typing
 
 class FramePointRenderer:
@@ -15,7 +13,7 @@ class FramePointRenderer:
     def __exit__(self, *args):
         cv2.destroyWindow(str(id(self)))
 
-    def tick(self):
+    def act(self):
         _, frame = next(self.frameSource)
         for pointSource, color in self.pointSources:
             _, pt = next(pointSource)

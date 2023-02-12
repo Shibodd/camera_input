@@ -5,15 +5,15 @@ from sources.opencvsources import OpenCVCameraFrameSource
 def nothing(x):
     pass
 
-with OpenCVCameraFrameSource(0, cv2.CAP_ANY, 352, 288, 60) as cam:
+with OpenCVCameraFrameSource(0, cv2.CAP_DSHOW, 352, 288, 16) as cam:
     # Create a window
     cv2.namedWindow('image')
 
-    CONV = cv2.COLOR_BGR2LAB
+    CONV = cv2.COLOR_BGR2HSV
     channels = [
-        ('L', 0, 255),
-        ('A', 0, 255),
-        ('B', 0, 255),
+        ('H', 0, 180),
+        ('S', 0, 255),
+        ('V', 0, 255),
     ]
 
     for ch in channels:

@@ -1,24 +1,32 @@
 import cv2
 import numpy as np
+import time
 
-from processors.processors import CachedProcessor
+from processors.processors import Processor, cached_processor
 
-class ColorConverterProcessor(CachedProcessor):
+@cached_processor
+class ColorConverterProcessor(Processor):
     def __init__(self, frameSource, colorConversion):
         super().__init__(frameSource)
         self.colorConversion = colorConversion
     
-    def process(self, result):
-        return cv2.cvtColor(result, self.colorConversion)
+    def process(self, _, frame):
+        result = frame[0]
+        return (time.monotonic_ns(), cv2.cvtColor(result, self.colorConversion))
 
-
-class BlurProcessor(CachedProcessor):
-    def __init__(self, frameSource, radii):
+@cached_processor
+class BlurProcessor(Processor):
+    def __init__(self, frameSource, radii, sigma):
         super().__init__(frameSource)
         self.radii = radii
-    def process(self, frame):
-        return cv2.blur(frame, (self.radii, self.radii))
-class SimpleColorRangePointProcessor(CachedProcessor):
+        self.sigma = sigma
+        
+    def process(self, _, results):
+        frame = results[0]
+        return (time.monotonic_ns(), cv2.GaussianBlur(frame, (self.radii, self.radii), self.sigma))
+
+@cached_processor
+class SimpleColorRangePointProcessor(Processor):
     """ A point source which averages the coordinates of the points which have (opencv)  colors in the range(s) passed as parameter.
         If multiple ranges are passed, the results of each individual inRange will be OR'd."""
 
@@ -27,7 +35,8 @@ class SimpleColorRangePointProcessor(CachedProcessor):
         super().__init__(frameSource)
         self.ranges = ranges
 
-    def process(self, frame):
+    def process(self, _, results):
+        frame = results[0]
         if len(self.ranges) <= 1: # fast path
             min_range, max_range = self.ranges[0]
             im = cv2.inRange(frame, min_range,max_range)
@@ -39,6 +48,8 @@ class SimpleColorRangePointProcessor(CachedProcessor):
 
         pts = cv2.findNonZero(im)
         if pts is not None:
-            return np.mean(pts, axis=(0, 1))
+            res = np.mean(pts, axis=(0, 1))
         else:
-            return None
+            res = None
+
+        return (time.monotonic_ns(), res)
